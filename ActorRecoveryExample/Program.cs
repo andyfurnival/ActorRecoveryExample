@@ -49,6 +49,7 @@ namespace ActorRecoveryExample
             Recover<string>(msg =>
             {
                 Context.GetLogger().Info("[{1}] Recovery: {0}", msg, nameof(ParentActor));
+                CreateChildActor();
 
             });
             Recover<bool>(msg =>
@@ -70,10 +71,7 @@ namespace ActorRecoveryExample
                 Persist(msg, persisted =>
                 {
                     Context.GetLogger().Info("[{1}] Command: {0}", msg, nameof(ParentActor));
-                    var name = (Context.GetChildren().Count() + 1).ToString();
-                    
-                    var child = Context.ActorOf(Props.Create(() =>
-                        new ChildActor(name)),name);
+                    var child = CreateChildActor();
                     child.Tell(msg);
                 });
             });
@@ -87,7 +85,16 @@ namespace ActorRecoveryExample
                 });
             });
         }
-        
+
+        private static IActorRef CreateChildActor()
+        {
+            var name = (Context.GetChildren().Count() + 1).ToString();
+
+            var child = Context.ActorOf(Props.Create(() =>
+                new ChildActor(name)), name);
+            return child;
+        }
+
 
         public override string PersistenceId { get; }
     }
