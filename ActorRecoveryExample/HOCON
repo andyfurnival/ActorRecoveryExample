@@ -1,0 +1,61 @@
+akka {
+  actor {
+    provider="cluster"
+    serialization-bindings {
+      "System.Object"=hyperion
+    }
+    serialization-identifiers {
+        "Akka.Cluster.Serialization.ClusterMessageSerializer, Akka.Cluster" : 5
+    }
+    serializers {
+     "akka-cluster" : "Akka.Cluster.Serialization.ClusterMessageSerializer, Akka.Cluster",
+      hyperion="Akka.Serialization.HyperionSerializer, Akka.Serialization.Hyperion"
+    }
+  }
+  persistence {
+          journal {
+                      plugin = "akka.persistence.journal.redis"
+                      redis {
+                          class = "Akka.Persistence.Redis.Journal.RedisJournal, Akka.Persistence.Redis"
+                          plugin-dispatcher = "akka.actor.default-dispatcher"
+                          configuration-string = "localhost"
+                          database = 0
+                          replay-filter {
+                              mode = repair-by-discard-old
+                          }
+                          key-prefix = "Bet"
+                      }
+                  }
+          snapshot-store {
+              plugin = "akka.persistence.snapshot-store.local"
+          }
+      }
+  cluster {
+    roles = [ "recovery" ]
+    role.recovery.min-nr-of-members = 1
+    seed-nodes=[]
+  }
+  coordinated-shutdown {
+    exit-clr=on
+  }
+ 
+  loglevel=WARNING
+  test {
+    timefactor=10
+  }
+
+"loglevel" : "DEBUG",
+remote {
+  dot-netty {
+    tcp {
+      maximum-frame-size="350000b"
+      message-frame-size="300000b"
+      port=18000
+      receive-buffer-size="300000b"
+      send-buffer-size="300000b"
+    }
+  }
+  log-sent-messages=on
+  maximum-payload-bytes="350000 bytes"
+}
+}
